@@ -47,30 +47,35 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     orderBy = { startAt: "desc" };
   }
 
-  const events = await prisma.event.findMany({
-    where,
-    orderBy,
-    include: {
-      organization: { select: { name: true } },
-      ticketTiers: {
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          totalQuantity: true,
-          soldQuantity: true,
-          reservedQuantity: true,
+  let events: any[] = [];
+  try {
+    events = await prisma.event.findMany({
+      where,
+      orderBy,
+      include: {
+        organization: { select: { name: true } },
+        ticketTiers: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            totalQuantity: true,
+            soldQuantity: true,
+            reservedQuantity: true,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Database query failed on EventsPage:", error);
+  }
 
   // Calculate prices and availability
-  let transformedEvents = events.map((event) => {
-    const prices = event.ticketTiers.map((t) => t.price);
+  let transformedEvents = events.map((event: any) => {
+    const prices = (event.ticketTiers || []).map((t: any) => t.price);
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-    const totalAvailable = event.ticketTiers.reduce(
-      (sum, t) => sum + Math.max(0, t.totalQuantity - t.soldQuantity - t.reservedQuantity),
+    const totalAvailable = (event.ticketTiers || []).reduce(
+      (sum: number, t: any) => sum + Math.max(0, t.totalQuantity - t.soldQuantity - t.reservedQuantity),
       0
     );
 

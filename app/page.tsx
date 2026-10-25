@@ -19,31 +19,36 @@ export const revalidate = 0; // Always fresh database records
 
 export default async function HomePage() {
   // Fetch real published events with ticket tiers
-  const events = await prisma.event.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { startAt: "asc" },
-    include: {
-      organization: {
-        select: { name: true },
-      },
-      ticketTiers: {
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          totalQuantity: true,
-          soldQuantity: true,
-          reservedQuantity: true,
+  let events: any[] = [];
+  try {
+    events = await prisma.event.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { startAt: "asc" },
+      include: {
+        organization: {
+          select: { name: true },
+        },
+        ticketTiers: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            totalQuantity: true,
+            soldQuantity: true,
+            reservedQuantity: true,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Database query failed on HomePage:", error);
+  }
 
-  const transformedEvents = events.map((event) => {
-    const prices = event.ticketTiers.map((t) => t.price);
+  const transformedEvents = events.map((event: any) => {
+    const prices = (event.ticketTiers || []).map((t: any) => t.price);
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-    const totalAvailable = event.ticketTiers.reduce(
-      (sum, t) => sum + Math.max(0, t.totalQuantity - t.soldQuantity - t.reservedQuantity),
+    const totalAvailable = (event.ticketTiers || []).reduce(
+      (sum: number, t: any) => sum + Math.max(0, t.totalQuantity - t.soldQuantity - t.reservedQuantity),
       0
     );
 
