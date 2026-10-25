@@ -1,0 +1,241 @@
+// Prisma Schema for THIGAZH (திகழ்) Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ATTENDEE
+  ORGANIZER
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum HoldStatus {
+  ACTIVE
+  EXPIRED
+  CONVERTED
+  RELEASED
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+enum TicketStatus {
+  VALID
+  USED
+  CANCELLED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  role         Role          @default(ATTENDEE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  organizations Organization[]
+  holds         TicketHold[]
+  orders        Order[]
+  tickets       Ticket[]
+
+  @@index([email])
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events      Event[]
+
+  @@index([ownerId])
+  @@index([slug])
+}
+
+model Event {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String
+  slug           String       @unique
+  description    String       @db.Text
+  category       String
+  venue          String
+  city           String
+  startAt        DateTime
+  endAt          DateTime
+  salesStartAt   DateTime
+  salesCutoffAt  DateTime
+  status         EventStatus  @default(DRAFT)
+  coverImage     String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  ticketTiers    TicketTier[]
+  holds          TicketHold[]
+  orders         Order[]
+
+  @@index([organizationId])
+  @@index([category])
+  @@index([city])
+  @@index([startAt])
+  @@index([status])
+}
+
+model TicketTier {
+  id               String           @id @default(uuid())
+  eventId          String
+  event            Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  price            Int              // Amount in smallest currency units (e.g. INR paise or cents: 50000 = ₹500)
+  currency         String           @default("INR")
+  totalQuantity    Int
+  soldQuantity     Int              @default(0)
+  reservedQuantity Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  holdItems        TicketHoldItem[]
+  orderItems       OrderItem[]
+  tickets          Ticket[]
+
+  @@index([eventId])
+}
+
+model TicketHold {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId   String
+  event     Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  status    HoldStatus       @default(ACTIVE)
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  items     TicketHoldItem[]
+  order     Order?
+
+  @@index([userId])
+  @@index([status, expiresAt])
+  @@index([eventId])
+}
+
+model TicketHoldItem {
+  id           String     @id @default(uuid())
+  holdId       String
+  hold         TicketHold @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  ticketTierId String
+  ticketTier   TicketTier @relation(fields: [ticketTierId], references: [id], onDelete: Cascade)
+  quantity     Int
+  unitPrice    Int
+
+  @@index([holdId])
+  @@index([ticketTierId])
+}
+
+model Order {
+  id             String               @id @default(uuid())
+  orderNumber    String               @unique
+  userId         String
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  eventId        String
+  event          Event                @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  holdId         String?              @unique
+  hold           TicketHold?          @relation(fields: [holdId], references: [id], onDelete: SetNull)
+  status         OrderStatus          @default(PENDING)
+  totalAmount    Int                  // Total amount in smallest currency units
+  currency       String               @default("INR")
+  idempotencyKey String?              @unique
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  items          OrderItem[]
+  transactions   PaymentTransaction[]
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id           String     @id @default(uuid())
+  orderId      String
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTierId String
+  ticketTier   TicketTier @relation(fields: [ticketTierId], references: [id], onDelete: Restrict)
+  quantity     Int
+  unitPrice    Int
+
+  tickets      Ticket[]
+
+  @@index([orderId])
+  @@index([ticketTierId])
+}
+
+model PaymentTransaction {
+  id               String        @id @default(uuid())
+  orderId          String
+  order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentReference String        @unique
+  idempotencyKey   String?       @unique
+  amount           Int
+  currency         String        @default("INR")
+  status           PaymentStatus @default(PENDING)
+  gatewayResponse  String?       @db.Text
+  createdAt        DateTime      @default(now())
+  processedAt      DateTime?
+
+  @@index([orderId])
+  @@index([paymentReference])
+}
+
+model Ticket {
+  id                String       @id @default(uuid())
+  orderItemId       String
+  orderItem         OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  ticketTierId      String
+  ticketTier        TicketTier   @relation(fields: [ticketTierId], references: [id], onDelete: Restrict)
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationToken String       @unique
+  status            TicketStatus @default(VALID)
+  issuedAt          DateTime     @default(now())
+  usedAt            DateTime?
+
+  @@index([orderItemId])
+  @@index([ticketTierId])
+  @@index([userId])
+  @@index([verificationToken])
+}

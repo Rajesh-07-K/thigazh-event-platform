@@ -1,0 +1,303 @@
+{
+  "info": {
+    "_postman_id": "thigazh-api-collection-2026",
+    "name": "THIGAZH (திகழ்) API Collection",
+    "description": "Comprehensive Postman collection for THIGAZH event discovery, atomic 10-minute ticket reservations, mock payment checkout, and digital ticket verification.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ticketTierId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "holdId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verificationToken",
+      "value": "TKT-VF-KALAIGNAN-001-A",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Attendee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Karthik Raja\",\n  \"email\": \"karthik@example.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"ATTENDEE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Register Organizer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Suresh Natarajan\",\n  \"email\": \"suresh@chennaiculture.org\",\n  \"password\": \"Password@123\",\n  \"role\": \"ORGANIZER\",\n  \"organizationName\": \"Chennai Cultural Collective\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login (Demo Attendee)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"attendee@thigazh.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Demo Organizer)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"organizer@thigazh.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Demo Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@thigazh.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Current Session User (Me)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Events",
+      "item": [
+        {
+          "name": "Discover Events (Filtered & Sorted)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/events?category=Music+%26+Concerts&city=Chennai&sort=date_asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"],
+              "query": [
+                { "key": "category", "value": "Music & Concerts" },
+                { "key": "city", "value": "Chennai" },
+                { "key": "sort", "value": "date_asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Event Details by ID with Authoritative Tiers",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "Create Event (Organizer/Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tamil Nadu AI Builders Meetup\",\n  \"description\": \"An engaging hands-on hack night for generative AI practitioners and founders in Coimbatore.\",\n  \"category\": \"Technology & AI\",\n  \"venue\": \"Codissia Hall D\",\n  \"city\": \"Coimbatore\",\n  \"coverImage\": \"https://images.unsplash.com/photo-1540575467063-178a50c2df87\",\n  \"startAt\": \"2026-11-20T10:00:00.000Z\",\n  \"endAt\": \"2026-11-20T18:00:00.000Z\",\n  \"salesStartAt\": \"2026-10-01T00:00:00.000Z\",\n  \"salesCutoffAt\": \"2026-11-19T23:59:59.000Z\",\n  \"ticketTiers\": [\n    {\n      \"name\": \"General Delegate\",\n      \"description\": \"Full day access with lunch\",\n      \"price\": 49900,\n      \"totalQuantity\": 150\n    },\n    {\n      \"name\": \"VIP Founder Pass\",\n      \"description\": \"Access to private investor mixer\",\n      \"price\": 149900,\n      \"totalQuantity\": 30\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 10-Minute Hold Reservations",
+      "item": [
+        {
+          "name": "Create 10-Minute Hold Reservation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"items\": [\n    {\n      \"ticketTierId\": \"{{ticketTierId}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/reservations", "host": ["{{baseUrl}}"], "path": ["api", "reservations"] }
+          }
+        },
+        {
+          "name": "Get Hold Details and Countdown Timer",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/reservations/{{holdId}}", "host": ["{{baseUrl}}"], "path": ["api", "reservations", "{{holdId}}"] }
+          }
+        },
+        {
+          "name": "Release Hold Early",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/reservations/{{holdId}}", "host": ["{{baseUrl}}"], "path": ["api", "reservations", "{{holdId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Checkout & Mock Payments",
+      "item": [
+        {
+          "name": "Checkout - Mock Payment Success",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holdId\": \"{{holdId}}\",\n  \"idempotencyKey\": \"idemp-postman-succ-123\",\n  \"simulateResult\": \"SUCCESS\",\n  \"paymentMethod\": \"UPI_SIMULATED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/checkout", "host": ["{{baseUrl}}"], "path": ["api", "checkout"] }
+          }
+        },
+        {
+          "name": "Checkout - Mock Payment Decline",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holdId\": \"{{holdId}}\",\n  \"idempotencyKey\": \"idemp-postman-fail-456\",\n  \"simulateResult\": \"FAILURE\",\n  \"paymentMethod\": \"CARD_SIMULATED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/checkout", "host": ["{{baseUrl}}"], "path": ["api", "checkout"] }
+          }
+        },
+        {
+          "name": "Checkout - Idempotency Re-submission (Safe Duplicate Return)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holdId\": \"{{holdId}}\",\n  \"idempotencyKey\": \"idemp-postman-succ-123\",\n  \"simulateResult\": \"SUCCESS\",\n  \"paymentMethod\": \"UPI_SIMULATED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/checkout", "host": ["{{baseUrl}}"], "path": ["api", "checkout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Digital Tickets & Gate Verification",
+      "item": [
+        {
+          "name": "Get User Bookings & Tickets",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] }
+          }
+        },
+        {
+          "name": "Verify Ticket Authenticity by Token",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/tickets/verify/{{verificationToken}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "verify", "{{verificationToken}}"] }
+          }
+        },
+        {
+          "name": "Admit Pass at Gate (Organizer/Admin only)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/tickets/verify/{{verificationToken}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "verify", "{{verificationToken}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Organizer Analytics",
+      "item": [
+        {
+          "name": "Get Authoritative Organizer Metrics & Revenue",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/organizer/analytics", "host": ["{{baseUrl}}"], "path": ["api", "organizer", "analytics"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Admin Console",
+      "item": [
+        {
+          "name": "Get Platform Overview (Admin only)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/admin/overview", "host": ["{{baseUrl}}"], "path": ["api", "admin", "overview"] }
+          }
+        },
+        {
+          "name": "Moderate Event Status (Publish/Unpublish)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DRAFT\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/admin/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "admin", "events", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Scheduled Cron Hold Expiration",
+      "item": [
+        {
+          "name": "Release Expired Holds Worker",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer thigazh-internal-cron-token-xyz" }],
+            "url": { "raw": "{{baseUrl}}/api/cron/release-holds", "host": ["{{baseUrl}}"], "path": ["api", "cron", "release-holds"] }
+          }
+        }
+      ]
+    }
+  ]
+}
