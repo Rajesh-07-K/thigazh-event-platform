@@ -4,7 +4,7 @@
 
 ---
 
-## 🌟 Overview & Identity
+## Overview & Identity
 
 **THIGAZH (திகழ்)** is a premium event discovery and digital ticketing web application designed for cultural festivals, classical concerts, technology conclaves, culinary masterclasses, and creative workshops across Tamil Nadu.
 
@@ -15,7 +15,7 @@
 
 ---
 
-## 🛡️ Core Highlights & Guarantees
+## Core Highlights & Guarantees
 
 1. **The 10-Minute Reservation Engine:**
    - Reserving tickets locks inventory for **strictly 10 minutes** with an interactive visual countdown timer.
@@ -39,7 +39,7 @@
 
 ---
 
-## 🚀 Technology Stack
+## Technology Stack
 
 - **Framework:** Next.js 14 (App Router, Server & Client Components)
 - **Language:** TypeScript 5 (Strict Mode)
@@ -55,7 +55,7 @@
 
 ---
 
-## 🧑‍💻 Demo Test Accounts
+## Demo Test Accounts
 
 The database comes pre-seeded with three distinct roles for immediate evaluation:
 
@@ -69,7 +69,7 @@ The database comes pre-seeded with three distinct roles for immediate evaluation
 
 ---
 
-## 🛠️ Local Setup & Installation
+##  Local Setup & Installation
 
 ### 1. Prerequisites
 - Node.js `v18.17.0+` (Tested on Node `v24.12.0`)
@@ -113,7 +113,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🧪 Automated Testing Suite
+##  Automated Testing Suite
 
 THIGAZH includes comprehensive automated integration tests verifying all 15 acceptance criteria:
 
@@ -140,7 +140,7 @@ npm run test
 
 ---
 
-## 📦 Production Build
+##  Production Build
 
 ```bash
 # Type-check
@@ -155,7 +155,7 @@ npm run start
 
 ---
 
-## 🚢 Deployment Guide
+##  Deployment Guide
 
 ### Deploying to Vercel / Railway / AWS:
 1. **Database:** Provision a managed PostgreSQL instance (e.g. [Neon](https://neon.tech), [Supabase](https://supabase.com), or Railway PostgreSQL).
@@ -169,7 +169,7 @@ npm run start
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 ├── app/
